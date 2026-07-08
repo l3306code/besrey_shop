@@ -3,7 +3,7 @@ import Router from "vue-router";
 import LoginVue from './components/Login.vue'
 import Home from "./components/Home.vue";
 import WelcomeVue from "./components/Welcome.vue";
-import UsersVue from "./components/user/Users.vue";
+import Users from "./components/user/Users.vue";
 
 Vue.use(Router)
 
@@ -29,9 +29,8 @@ const router =  new Router({
                 },
                 {
                     path: '/users',
-                    component: UsersVue
+                    component: Users
                 }
-
             ]
         }
 ]

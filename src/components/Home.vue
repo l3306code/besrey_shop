@@ -18,7 +18,7 @@
                     :collapse="isCollapse"
                     :collapse-transition="false"
                     :router="true"
-                    >
+                    :default-active="activePath">
                     <!-- 一级菜单 -->
                     <el-submenu :index="item.id + ''" v-for="item in menuList" :key="item.id">
                         <!-- 一级菜单的模板区域 -->
@@ -60,11 +60,14 @@ export default {
                 '102': 'el-icon-s-order',         // 订单管理
                 '145': 'el-icon-data-analysis'    // 数据统计
             },
-            isCollapse:false
+            isCollapse:false,
+            //被激活的链接地址
+            activePath: ''
         }
     },
     created(){
         this.getMenuList()
+        this.activePath = window.sessionStorage.getItem('activePath')
     },
     methods: {
         logout() {
@@ -80,9 +83,9 @@ export default {
         toggleCollapse(){
             this.isCollapse = !this.isCollapse
         },
-        //保存链接的激活状态
-        saveNavState(){
-
+        saveNavState(activePath){
+            window.sessionStorage.setItem('activePath', activePath)
+            this.activePath = activePath
         }
     }
 
