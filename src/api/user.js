@@ -25,3 +25,12 @@ export function updateUserState(id, state){
         method: 'put'
     })
 }
+
+//添加一个新用户
+export function addUserInfo4(data){
+    return request({
+        url: '/api/private/v1/users',
+        method: 'post',
+        data:data
+    })
+}

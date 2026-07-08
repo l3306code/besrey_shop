@@ -59,24 +59,35 @@
         </el-card>
 
         <!-- 添加用户的弹框 -->
-        <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="30%">
-            <!-- <el-form ref="form" :model="userInfo" label-width="80px">
-                <el-form-item label="活动名称">
-                    <el-input v-model="form.name"></el-input>
+        <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="30%"
+        @close="addDialogVisibleClose">
+            <el-form ref="addFormRef" :model="addUserInfo" label-width="80px"
+            :rules="addFormRules">
+                <el-form-item label="用户名" prop="username">
+                    <el-input v-model="addUserInfo.username"></el-input>
                 </el-form-item>
-            </el-form> -->
+                <el-form-item label="密码" prop="password">
+                    <el-input v-model="addUserInfo.password"></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱" prop="email">
+                    <el-input v-model="addUserInfo.email"></el-input>
+                </el-form-item>
+                <el-form-item label="手机" prop="mobile">
+                    <el-input v-model="addUserInfo.mobile"></el-input>
+                </el-form-item>
+            </el-form>
 
             <!-- 底部区域 -->
             <span slot="footer" class="dialog-footer">
                 <el-button @click="addDialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="addDialogVisible = false">确 定</el-button>
+                <el-button type="primary" @click="addUser">确 定</el-button>
             </span>
         </el-dialog>
     </div>
 </template>
 
 <script>
-import { getUserData, updateUserState } from '@/api/user';
+import { getUserData, updateUserState, addUserInfo4 } from '@/api/user';
 
 
 export default {
@@ -87,6 +98,28 @@ export default {
     },
     props: {},
     data() {
+        let checkEmail = (_, value, cb)=>{
+            const regEmail = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+            if(regEmail.test(value)){
+                //合法的邮箱
+                return cb()
+            }
+
+            cb(new Error('请输入合法的邮箱'))
+        }
+
+        let checkMobile = (_, value, cb)=>{
+            const regMobile = /^1[3-9]\d{9}$/;
+
+            if(regMobile.test(value)){
+                //合法的邮箱
+                return cb()
+            }
+
+            cb(new Error('请输入正确的手机号'))
+
+        }
         return {
             //获取用户列表的参数对象
             queryInfo: {
@@ -97,8 +130,50 @@ export default {
             userlist: [],
             total: 0,
             addDialogVisible: false,
-            userInfo:{
-                
+            addUserInfo:{
+                username:'',
+                password:'',
+                email:'',
+                mobile:''
+            },
+            addFormRules:{
+                username:[
+                    {
+                        required: true,message: '请输入用户名', trigger:'blur'
+                    },
+                    {
+                        min: 3, max:10, message:'用户名的长度在3-10个字符之间',trigger:'blur'
+                    }
+                ],
+                password:[
+                    {
+                        required: true,message: '请输入密码', trigger:'blur'
+                    },
+                    {
+                        min: 6, max:15, message:'密码的长度在6-15个字符之间',trigger:'blur'
+                    }
+                ],
+                email:[
+                    {
+                        required: true,message: '请输入邮箱', trigger:'blur'
+                    },
+                    {
+                        min: 10, max:25, message:'邮箱的长度在10-25个字符之间',trigger:'blur'
+                    },
+                    {
+                        validator:checkEmail, trigger:'blur'
+                    }
+                ],
+                mobile:[
+                    {
+                        required: true,message: '请输入电话号码', trigger:'blur'
+                    },
+                    {
+                        min: 11, max:11, message:'邮箱的长度在11个字符之间',trigger:'blur'
+                    },{
+                        validator:checkMobile, trigger:'blur'
+                    }
+                ]
             }
         };
     },
@@ -136,7 +211,26 @@ export default {
             }
 
             this.$message.success(res.meta.msg)
+        },
 
+        addDialogVisibleClose(){
+            this.$refs.addFormRef.resetFields()
+        },
+        addUser(){
+            this.$refs.addFormRef.validate(async valid =>{
+                if(!valid) return this.$message.error('数据填写错误,请重新检查')
+
+                const {data: res} = await addUserInfo4(this.addUserInfo)
+
+                if(res.meta.status !==201){
+                   return   this.$message.error(res.meta.msg)
+                }
+
+                this.$message.success(res.meta.msg)
+                
+                this.addDialogVisible = false
+                this.getUserList()
+            })
         }
 
 
