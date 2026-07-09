@@ -38,7 +38,7 @@
                 <el-table-column label="操作" width="250px">
                     <template>
                         <el-tooltip effect="dark" placement="top" content="编辑" :enterable="false">
-                            <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
+                            <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog()"></el-button>
                         </el-tooltip>
 
                         <el-tooltip effect="dark" placement="top" content="删除" :enterable="false">
