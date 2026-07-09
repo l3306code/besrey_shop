@@ -32,17 +32,19 @@
                     <!-- 插槽 -->
                     <template v-slot="userInfo">
                         <el-switch v-model="userInfo.row.mg_state"
-                            @change="userStateChanged(userInfo.row.mg_state, userInfo.row.id)"></el-switch>
+                            @change="userStateChanged(userInfo.row.mg_state, userInfo.row.id)">
+                        </el-switch>
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" width="250px">
-                    <template>
+                    <template v-slot="userInfo">
                         <el-tooltip effect="dark" placement="top" content="编辑" :enterable="false">
-                            <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog()"></el-button>
+                            <el-button type="primary" icon="el-icon-edit" size="mini"
+                                @click="showEditDialog(userInfo.row.id)"></el-button>
                         </el-tooltip>
 
                         <el-tooltip effect="dark" placement="top" content="删除" :enterable="false">
-                            <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+                            <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeByUserId(userInfo.row.id)"></el-button>
                         </el-tooltip>
                         <el-tooltip effect="dark" placement="top" content="分配角色" :enterable="false">
                             <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
@@ -53,16 +55,14 @@
 
             <!-- 分页区域 -->
             <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-                :current-page="queryInfo.pagenum" :page-sizes="[2, 10, 20, 30]" :page-size="queryInfo.pagesize"
+                :current-page="queryInfo.pagenum" :page-sizes="[5, 10, 20, 30]" :page-size="queryInfo.pagesize"
                 layout="total, sizes, prev, pager, next, jumper" :total="total">
             </el-pagination>
         </el-card>
 
         <!-- 添加用户的弹框 -->
-        <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="30%"
-        @close="addDialogVisibleClose">
-            <el-form ref="addFormRef" :model="addUserInfo" label-width="80px"
-            :rules="addFormRules">
+        <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="30%" @close="addDialogVisibleClose">
+            <el-form ref="addFormRef" :model="addUserInfo" label-width="80px" :rules="addFormRules">
                 <el-form-item label="用户名" prop="username">
                     <el-input v-model="addUserInfo.username"></el-input>
                 </el-form-item>
@@ -83,25 +83,31 @@
                 <el-button type="primary" @click="addUser">确 定</el-button>
             </span>
         </el-dialog>
+
+        <!-- 编辑弹框组件 -->
+        <editUserVue :editDialogVisible.sync="editDialogVisible" :currentUserInfo="currentUserInfo" ref="editUserRef"
+            @update-one-user="handleUpdateOneUser" />
     </div>
 </template>
 
 <script>
-import { getUserData, updateUserState, addUserInfo4 } from '@/api/user';
-
+import { getUserData, updateUserState, addUserInfo4, getUserInfoById, deleteUserById } from '@/api/user';
+import editUserVue from './editUser.vue';
 
 export default {
     name: 'UsersVue',
-    components: {},
+    components: {
+        editUserVue
+    },
     created() {
         this.getUserList()
     },
     props: {},
     data() {
-        let checkEmail = (_, value, cb)=>{
+        let checkEmail = (_, value, cb) => {
             const regEmail = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
-            if(regEmail.test(value)){
+            if (regEmail.test(value)) {
                 //合法的邮箱
                 return cb()
             }
@@ -109,10 +115,10 @@ export default {
             cb(new Error('请输入合法的邮箱'))
         }
 
-        let checkMobile = (_, value, cb)=>{
+        let checkMobile = (_, value, cb) => {
             const regMobile = /^1[3-9]\d{9}$/;
 
-            if(regMobile.test(value)){
+            if (regMobile.test(value)) {
                 //合法的邮箱
                 return cb()
             }
@@ -130,50 +136,55 @@ export default {
             userlist: [],
             total: 0,
             addDialogVisible: false,
-            addUserInfo:{
-                username:'',
-                password:'',
-                email:'',
-                mobile:''
+            addUserInfo: {
+                username: '',
+                password: '',
+                email: '',
+                mobile: ''
             },
-            addFormRules:{
-                username:[
+            addFormRules: {
+                username: [
                     {
-                        required: true,message: '请输入用户名', trigger:'blur'
+                        required: true, message: '请输入用户名', trigger: 'blur'
                     },
                     {
-                        min: 3, max:10, message:'用户名的长度在3-10个字符之间',trigger:'blur'
+                        min: 3, max: 10, message: '用户名的长度在3-10个字符之间', trigger: 'blur'
                     }
                 ],
-                password:[
+                password: [
                     {
-                        required: true,message: '请输入密码', trigger:'blur'
+                        required: true, message: '请输入密码', trigger: 'blur'
                     },
                     {
-                        min: 6, max:15, message:'密码的长度在6-15个字符之间',trigger:'blur'
+                        min: 6, max: 15, message: '密码的长度在6-15个字符之间', trigger: 'blur'
                     }
                 ],
-                email:[
+                email: [
                     {
-                        required: true,message: '请输入邮箱', trigger:'blur'
+                        required: true, message: '请输入邮箱', trigger: 'blur'
                     },
                     {
-                        min: 10, max:25, message:'邮箱的长度在10-25个字符之间',trigger:'blur'
+                        min: 10, max: 25, message: '邮箱的长度在10-25个字符之间', trigger: 'blur'
                     },
                     {
-                        validator:checkEmail, trigger:'blur'
+                        validator: checkEmail, trigger: 'blur'
                     }
                 ],
-                mobile:[
+                mobile: [
                     {
-                        required: true,message: '请输入电话号码', trigger:'blur'
+                        required: true, message: '请输入电话号码', trigger: 'blur'
                     },
                     {
-                        min: 11, max:11, message:'邮箱的长度在11个字符之间',trigger:'blur'
-                    },{
-                        validator:checkMobile, trigger:'blur'
+                        min: 11, max: 11, message: '电话号码的长度在11个字符之间', trigger: 'blur'
+                    }, {
+                        validator: checkMobile, trigger: 'blur'
                     }
                 ]
+            },
+            editDialogVisible: false,
+            currentUserId: 0,
+            currentUserInfo: {
+
             }
         };
     },
@@ -213,30 +224,88 @@ export default {
             this.$message.success(res.meta.msg)
         },
 
-        addDialogVisibleClose(){
+        addDialogVisibleClose() {
             this.$refs.addFormRef.resetFields()
         },
-        addUser(){
-            this.$refs.addFormRef.validate(async valid =>{
-                if(!valid) return this.$message.error('数据填写错误,请重新检查')
+        addUser() {
+            this.$refs.addFormRef.validate(async valid => {
+                if (!valid) return this.$message.error('数据填写错误,请重新检查')
 
-                const {data: res} = await addUserInfo4(this.addUserInfo)
+                const { data: res } = await addUserInfo4(this.addUserInfo)
 
-                if(res.meta.status !==201){
-                   return   this.$message.error(res.meta.msg)
+                if (res.meta.status !== 201) {
+                    return this.$message.error(res.meta.msg)
                 }
 
                 this.$message.success(res.meta.msg)
-                
+
                 this.addDialogVisible = false
                 this.getUserList()
             })
+        },
+        //展示编辑页面
+        async showEditDialog(currentUserId) {
+            this.editDialogVisible = true;
+            this.currentUserId = currentUserId
+
+            const { data: res } = await getUserInfoById(currentUserId)
+
+            if (res.meta.status !== 200) {
+                return this.$message.error(res.meta.msg)
+            }
+
+            this.currentUserInfo = res.data
+
+        },
+        handleUpdateOneUser(editStatus) {
+            this.editDialogVisible = editStatus
+            this.getUserList()
+            this.$message.success('更新用户信息成功')
+        },
+        async removeByUserId(id){
+            const confirmRes = await this.$confirm('此操作将永久删除该用户,是否继续?', '提示',{
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).catch(
+                err =>{
+                    err
+                }
+            )
+
+            if(confirmRes !== 'confirm'){
+                return this.$message.info('已取消删除')
+            }
+
+            const {data: res} = await deleteUserById(id)
+
+            if(res.meta.status !== 200){
+                return this.$message.error(res.meta.msg)
+            }
+
+            this.$message.success(res.meta.msg)
+
+            this.getUserList()
         }
 
 
     },
 
-    mounted() { }
+    mounted() {
+        this.$refs.editUserRef.$on('closeEditDialog', (editStatus) => {
+            this.editDialogVisible = editStatus
+        })
+
+        this.$refs.editUserRef.$on('cancleEditInfo', (editStatus) => {
+            this.editDialogVisible = editStatus
+        })
+
+        /* this.$refs.editUserRef.$on('updateOneUser', (editStatus) => {
+            this.editDialogVisible = editStatus
+            this.getUserList()
+            this.$message.success('更新用户信息成功')
+        }) */
+    }
 };
 </script>
 <style lang="less" scoped></style>
