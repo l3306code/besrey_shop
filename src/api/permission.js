@@ -7,3 +7,12 @@ export function getPermissionList(){
         method: 'get'
     })
 }
+
+
+//删除用户对应的权限
+export function deletePermByRoleId(roleId, permId){
+    return request({
+        url: `/api/private/v1/roles/${roleId}/rights/${permId}`,
+        method:'delete'
+    })
+}
