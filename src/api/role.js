@@ -16,3 +16,8 @@ export function addRole4(data){
             data
         })
 }
+
+//根据id获取角色信息
+export function getRoleInfoById(id){
+    
+}

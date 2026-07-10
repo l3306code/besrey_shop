@@ -34,7 +34,12 @@
                 <el-button @click="addDialogVisible = false">取 消</el-button>
                 <el-button type="primary" @click="addRole">确 定</el-button>
             </span>
+
+            
         </el-dialog>
+
+        <!-- 修改角色的弹框 -->
+        <EditRoleVue/>
 
     </div>
 </template>
@@ -42,11 +47,14 @@
 <script>
 import { getAllRolesData, addRole4 } from '@/api/role';
 import RolesFormVue from './form/RolesForm.vue';
+import EditRoleVue from './form/editRole.vue';
+
 
 export default {
     name: 'RolesVue',
     components: {
-        RolesFormVue
+        RolesFormVue,
+        EditRoleVue
     },
     props: {},
     data() {
@@ -74,7 +82,8 @@ export default {
                         min: 5, max: 15, message: '角色描述的长度在5-15个字符之间', trigger: 'blur'
                     }
                 ]
-            }
+            },
+            editDialogVisible: false
         };
     },
     watch: {},
@@ -116,7 +125,11 @@ export default {
     created() {
         this.getRoleList()
     },
-    mounted() { }
+    mounted() { 
+        this.$on('doEditRole', (id) =>{
+            
+        })
+    }
 };
 </script>
 <style lang="less" scoped></style>
