@@ -15,7 +15,7 @@
             </el-row>
 
             <!-- 角色列表区域 -->
-            <RolesFormVue :roleList="roleList" />
+            <RolesFormVue :roleList="roleList" ref="roleFormRef" @deleteRole="handleDeleteRole"/>
         </el-card>
 
         <!-- 添加角色的弹框 -->
@@ -39,13 +39,14 @@
         </el-dialog>
 
         <!-- 修改角色的弹框 -->
-        <EditRoleVue/>
+        <EditRoleVue :editRoleInfo="editRoleInfo" :editDialogVisible.sync="editDialogVisible" ref="editRoleRef" 
+         @update-one-role="handleUpdateOneRole"  />
 
     </div>
 </template>
 
 <script>
-import { getAllRolesData, addRole4 } from '@/api/role';
+import { getAllRolesData, addRole4, getRoleInfoById } from '@/api/role';
 import RolesFormVue from './form/RolesForm.vue';
 import EditRoleVue from './form/editRole.vue';
 
@@ -83,7 +84,10 @@ export default {
                     }
                 ]
             },
-            editDialogVisible: false
+            editDialogVisible: false,
+            editRoleInfo:{
+
+            }
         };
     },
     watch: {},
@@ -120,15 +124,41 @@ export default {
               this.getRoleList()
 
            })          
+        },
+        handleUpdateOneRole(editStatus){
+            this.editDialogVisible = editStatus
+            this.getRoleList()
+            this.$message.success('更新角色信息成功')
+        },
+        handleDeleteRole(){
+            this.getRoleList()
+            this.$message.success('删除角色信息成功')
         }
     },
     created() {
         this.getRoleList()
     },
     mounted() { 
-        this.$on('doEditRole', (id) =>{
+        this.$refs.roleFormRef.$on('doEditRole',async (id) =>{
+            const {data: res} = await getRoleInfoById(id)
+            
+            if(res.meta.status !==200) return this.$message.error(res.meta.msg)
+
+            this.editRoleInfo = res.data
+
+            this.editDialogVisible = true
             
         })
+
+         this.$refs.editRoleRef.$on('closeEditDialog', (editStatus) => {
+            this.editDialogVisible = editStatus
+        })
+
+        this.$refs.editRoleRef.$on('cancleEditInfo', (editStatus) => {
+            this.editDialogVisible = editStatus
+        })
+
+
     }
 };
 </script>
