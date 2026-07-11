@@ -158,6 +158,10 @@ export default {
             this.editDialogVisible = editStatus
         })
 
+        this.$refs.roleFormRef.$on('doUpdatePermInfo', ()=>{
+            this.getRoleList()
+        })
+
 
     }
 };

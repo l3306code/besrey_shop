@@ -47,7 +47,7 @@
                             <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeByUserId(userInfo.row.id)"></el-button>
                         </el-tooltip>
                         <el-tooltip effect="dark" placement="top" content="分配角色" :enterable="false">
-                            <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
+                            <el-button type="warning" icon="el-icon-setting" size="mini" @click="setRoleForUser(userInfo.row)"></el-button>
                         </el-tooltip>
                     </template>
                 </el-table-column>
@@ -87,17 +87,27 @@
         <!-- 编辑弹框组件 -->
         <editUserVue :editDialogVisible.sync="editDialogVisible" :currentUserInfo="currentUserInfo" ref="editUserRef"
             @update-one-user="handleUpdateOneUser" />
+
+        <!-- 分配角色组件 -->
+        <AllocRoleVue :setRoleDialogVisible.sync="setRoleDialogVisible"
+        :currentUserInfo="roleForUserInfo"
+        @doGetUserList="handleUpdateUserRole"
+        @setRoleDialogClosed="handleSetRoleDialogClosed"/> 
+        
+        
     </div>
 </template>
 
 <script>
 import { getUserData, updateUserState, addUserInfo4, getUserInfoById, deleteUserById } from '@/api/user';
 import editUserVue from './editUser.vue';
+import AllocRoleVue from './dialog/AllocRole.vue';
 
 export default {
     name: 'UsersVue',
     components: {
-        editUserVue
+        editUserVue,
+        AllocRoleVue
     },
     created() {
         this.getUserList()
@@ -183,9 +193,9 @@ export default {
             },
             editDialogVisible: false,
             currentUserId: 0,
-            currentUserInfo: {
-
-            }
+            currentUserInfo: {},
+            setRoleDialogVisible:false,
+            roleForUserInfo:{}
         };
     },
     watch: {},
@@ -286,6 +296,18 @@ export default {
             this.$message.success(res.meta.msg)
 
             this.getUserList()
+        },
+        setRoleForUser(currentInfo){
+            this.roleForUserInfo = currentInfo
+            this.setRoleDialogVisible = true
+        },
+        handleUpdateUserRole(){
+            this.getUserList()
+            this.setRoleDialogVisible = false;
+        },
+        handleSetRoleDialogClosed(){
+            this.setRoleDialogVisible = false
+            this.roleForUserInfo = {}
         }
 
 

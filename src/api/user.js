@@ -61,3 +61,12 @@ export function deleteUserById(id){
         method:'delete'
     })
 }
+
+//分配用户角色
+export function setRoleByUserIdAndRoleId(userId, roleId){
+    return request({
+        url:`/api/private/v1/users/${userId}/role`,
+        method: 'put',
+        data: roleId
+    })
+}
