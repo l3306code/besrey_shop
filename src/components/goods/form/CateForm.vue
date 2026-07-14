@@ -5,7 +5,7 @@
     </el-row>
 
     <!-- 表格 -->
-    <tree-table :data="cateList" :columns="columns" border stripe
+    <tree-table class="treeTable" :data="cateList" :columns="columns" border stripe
     :selection-type="false" :expand-type="false" show-index>
     <!-- 是否有效 -->
     <template slot="isUsed" slot-scope="cateInfo">
@@ -36,6 +36,9 @@
 
 
     <!-- 分页区域 -->
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+    :current-page="queryInfo.pagenum" :page-sizes="[3,10,15,20]"
+    :page-size="queryInfo.pagesize" layout="total, sizes, prev, pager, next, jumper" :total="total"></el-pagination>
   </el-card>
 </template>
 
@@ -90,6 +93,14 @@ export default {
 
            this.total = res.data.total
            
+        },
+        handleSizeChange(newSize){
+            this.queryInfo.pagesize = newSize
+            this.getAllCateList()
+        },
+        handleCurrentChange(newPage){
+            this.queryInfo.pagesize = newPage
+            this.getAllCateList()
         }
     }
 }
@@ -99,4 +110,7 @@ export default {
 .el-row{
     margin-bottom: 10px;
 }
+
+
+
 </style>
