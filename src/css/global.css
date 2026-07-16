@@ -23,4 +23,8 @@ html, body, #app{
     margin-top: 10px;
 }
 
+.el-cascader-panel{
+    height: 300px;
+}
+
 

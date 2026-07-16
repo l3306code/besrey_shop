@@ -1,7 +1,8 @@
 <template>
-  <el-card>
+  <div>
+    <el-card>
     <el-row>
-        <el-button type="primary">添加分类</el-button>
+        <el-button type="primary" @click="showAddCate">添加分类</el-button>
     </el-row>
 
     <!-- 表格 -->
@@ -40,17 +41,24 @@
     :current-page="queryInfo.pagenum" :page-sizes="[3,10,15,20]"
     :page-size="queryInfo.pagesize" layout="total, sizes, prev, pager, next, jumper" :total="total"></el-pagination>
   </el-card>
+
+   <add-cate-dialog :addCateDialogVisible.sync="addCateDialogVisible" ref="addCateRef" 
+   @cancelAdd="handleCancleAdd" :parentCateList="parentCateList"></add-cate-dialog>
+  </div>
 </template>
 
 <script>
 import { getCateList } from '@/api/cate';
+import addCateDialogVue from '../dialog/addCateDialog.vue';
+import addCateDialog from '../dialog/addCateDialog.vue';
 export default {
+  components: { addCateDialog },
     data(){
         return{
             queryInfo:{
                 type:3,
                 pagenum:1,
-                pagesize: 5
+                pagesize: 3
             },
             cateList: [],
             total: 0,
@@ -74,8 +82,13 @@ export default {
                     type:'template',
                     template: 'opt'
                 }
-            ]
+            ],
+            addCateDialogVisible: false,
+            parentCateList:[]
         }
+    },
+    comments:{
+        addCateDialogVue
     },
     created(){
         this.getAllCateList()
@@ -101,7 +114,28 @@ export default {
         handleCurrentChange(newPage){
             this.queryInfo.pagesize = newPage
             this.getAllCateList()
+        },
+        async showAddCate(){
+             const {data: res} = await getCateList({
+                type: 2
+            })
+
+            if(res.meta.status !== 200){
+                return this.$message.error(res.meta.msg)
+            }
+
+            this.addCateDialogVisible = true
+           
+            this.parentCateList = res.data
+            
+            
+        },
+        handleCancleAdd(status){
+            this.addCateDialogVisible = status
         }
+    },
+    mounted(){
+
     }
 }
 </script>
