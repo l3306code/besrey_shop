@@ -43,7 +43,8 @@
   </el-card>
 
    <add-cate-dialog :addCateDialogVisible.sync="addCateDialogVisible" ref="addCateRef" 
-   @cancelAdd="handleCancleAdd" :parentCateList="parentCateList"></add-cate-dialog>
+   @cancelAdd="handleCancelAdd" :parentCateList="parentCateList"
+   @doGetCateList="getAllCateList"></add-cate-dialog>
   </div>
 </template>
 
@@ -112,7 +113,7 @@ export default {
             this.getAllCateList()
         },
         handleCurrentChange(newPage){
-            this.queryInfo.pagesize = newPage
+            this.queryInfo.pagenum = newPage
             this.getAllCateList()
         },
         async showAddCate(){
@@ -130,9 +131,10 @@ export default {
             
             
         },
-        handleCancleAdd(status){
+        handleCancelAdd(status){
             this.addCateDialogVisible = status
-        }
+        },
+       
     },
     mounted(){
 
