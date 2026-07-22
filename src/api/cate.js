@@ -16,3 +16,10 @@ export function addCateInfo(data){
         data
     })
 }
+
+export function getCateInfoById(id){
+    return request({
+        url: `/api/private/v1/categories/${id}`,
+        method: 'get'
+    })
+}

@@ -19,11 +19,12 @@
         <el-tag size="mini" type="success" v-else-if="cateInfo.row.cat_level===1">二级</el-tag>
         <el-tag size="mini" type="warning" v-else>三级</el-tag>
     </template>
-    <template slot="opt">
+    <template slot="opt" slot-scope="cateInfo">
         <el-button
             size="mini"
             type="primary"
             icon="el-icon-edit"
+            @click="showCateOne(cateInfo.row.cat_id)"
             >编辑</el-button
           >
           <el-button
@@ -45,15 +46,17 @@
    <add-cate-dialog :addCateDialogVisible.sync="addCateDialogVisible" ref="addCateRef" 
    @cancelAdd="handleCancelAdd" :parentCateList="parentCateList"
    @doGetCateList="getAllCateList"></add-cate-dialog>
+
+   <editCateDialogVue :editCateDialogVisible.sync="editCateDialogVisible"/>
   </div>
 </template>
 
 <script>
-import { getCateList } from '@/api/cate';
-import addCateDialogVue from '../dialog/addCateDialog.vue';
+import { getCateList, getCateInfoById } from '@/api/cate';
 import addCateDialog from '../dialog/addCateDialog.vue';
+import editCateDialogVue from '../dialog/editCateDialog.vue';
 export default {
-  components: { addCateDialog },
+  components: { addCateDialog, editCateDialogVue },
     data(){
         return{
             queryInfo:{
@@ -85,11 +88,9 @@ export default {
                 }
             ],
             addCateDialogVisible: false,
-            parentCateList:[]
+            parentCateList:[],
+            editCateDialogVisible: false
         }
-    },
-    comments:{
-        addCateDialogVue
     },
     created(){
         this.getAllCateList()
@@ -134,6 +135,16 @@ export default {
         handleCancelAdd(status){
             this.addCateDialogVisible = status
         },
+        async showCateOne(id){
+            const {data: res} = await getCateInfoById(id)
+            
+            if(res.meta.status !==200){
+                return this.$message.error(res.meta.msg)
+            }
+
+            this.editCateDialogVisible = true
+            
+        }
        
     },
     mounted(){
