@@ -31,6 +31,7 @@
             size="mini"
             type="danger"
             icon="el-icon-delete"
+            @click="deleteCate(cateInfo.row.cat_id)"
             >删除</el-button
           >
     </template>
@@ -47,12 +48,14 @@
    @cancelAdd="handleCancelAdd" :parentCateList="parentCateList"
    @doGetCateList="getAllCateList"></add-cate-dialog>
 
-   <editCateDialogVue :editCateDialogVisible.sync="editCateDialogVisible"/>
+   <editCateDialogVue :editCateDialogVisible.sync="editCateDialogVisible"
+   @closeEditDialog="handleCloseEdit" :editCateInfo="editCateInfo"
+   @updateCateForm="getAllCateList"/>
   </div>
 </template>
 
 <script>
-import { getCateList, getCateInfoById } from '@/api/cate';
+import { getCateList, getCateInfoById, removeCateInfoById } from '@/api/cate';
 import addCateDialog from '../dialog/addCateDialog.vue';
 import editCateDialogVue from '../dialog/editCateDialog.vue';
 export default {
@@ -89,7 +92,10 @@ export default {
             ],
             addCateDialogVisible: false,
             parentCateList:[],
-            editCateDialogVisible: false
+            editCateDialogVisible: false,
+            editCateInfo:{
+
+            }
         }
     },
     created(){
@@ -143,7 +149,42 @@ export default {
             }
 
             this.editCateDialogVisible = true
+
+            this.editCateInfo = res.data
             
+        },
+        handleCloseEdit(status){
+            this.editCateDialogVisible = status
+        },
+        async deleteCate(id){
+             const confirmRes = await this.$confirm('此操作将永久删除该分类,是否继续?', '提示',{
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).catch(
+                err =>{
+                    err
+                }
+            )
+
+            if(confirmRes !== 'confirm'){
+                return this.$message.info('已取消删除')
+            }
+
+            const {data: res} = await removeCateInfoById(id)
+
+            if(res.meta.status !== 200){
+                return this.$message.error(res.meta.msg)
+            }
+
+            this.$message.success(res.meta.msg)
+
+
+            if(this.cateList.length === 1 && this.queryInfo.pagenum > 1){
+                this.queryInfo.pagenum --
+            }
+
+            this.getAllCateList()
         }
        
     },
